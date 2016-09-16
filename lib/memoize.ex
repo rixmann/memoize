@@ -15,16 +15,22 @@ defmodule Memoize do
     {name, _, params} = name_params
      quote do
       def unquote(name)(unquote_splicing(params)) do
-        case Memoize.Cache.lookup({unquote(name), unquote(params)}) do
+        case Memoize.Cache.lookup({__MODULE__, unquote(name), unquote(params)}) do
           {:error, :not_found} ->
             value = unquote(block)
-            Memoize.Cache.insert({unquote(name), unquote(params)}, value)
+            Memoize.Cache.insert({__MODULE__, unquote(name), unquote(params)}, value)
             value
           value ->
             value
         end
       end
     end
+  end
+
+  def invalidate(module, fun, params) do
+    Memoize.Cache.invalidate({module || :_,
+                              fun    || :_,
+                              params || :_})
   end
 
 end
